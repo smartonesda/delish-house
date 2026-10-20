@@ -36,8 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const navMenu = document.getElementById('navMenu');
 
   if (hamburgerBtn && navMenu) {
-    hamburgerBtn.addEventListener('click', () => {
+    hamburgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       navMenu.classList.toggle('mobile-open');
+      hamburgerBtn.classList.toggle('active');
     });
 
     // Close mobile menu when a nav link is clicked
@@ -45,7 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         navMenu.classList.remove('mobile-open');
+        hamburgerBtn.classList.remove('active');
       });
+    });
+
+    // Close mobile/tablet menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (navMenu.classList.contains('mobile-open')) {
+        if (!navMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          navMenu.classList.remove('mobile-open');
+          hamburgerBtn.classList.remove('active');
+        }
+      }
     });
   }
 
@@ -73,47 +86,112 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 4. Modal Pendaftaran UMKM Handling
+  // 4. Modal Pendaftaran UMKM & Login Handling
   const registerModal = document.getElementById('registerModal');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const loginModal = document.getElementById('loginModal');
+  const loginModalCloseBtn = document.getElementById('loginModalCloseBtn');
+  const btnNavLogin = document.getElementById('btnNavLogin');
+  const switchRegisterLink = document.getElementById('switchRegisterLink');
+
   const btnNavRegister = document.getElementById('btnNavRegister');
   const btnHeroRegister = document.getElementById('btnHeroRegister');
   const btnSolutionStart = document.getElementById('btnSolutionStart');
   const btnCtaRegister = document.getElementById('btnCtaRegister');
 
-  const openModal = (e) => {
+  const openRegisterModal = (e) => {
     if (e) e.preventDefault();
+    if (loginModal) loginModal.classList.remove('active');
     if (registerModal) registerModal.classList.add('active');
   };
 
-  const closeModal = () => {
+  const closeRegisterModal = () => {
     if (registerModal) registerModal.classList.remove('active');
   };
 
-  if (btnNavRegister) btnNavRegister.addEventListener('click', openModal);
-  if (btnHeroRegister) btnHeroRegister.addEventListener('click', openModal);
-  if (btnSolutionStart) btnSolutionStart.addEventListener('click', openModal);
-  if (btnCtaRegister) btnCtaRegister.addEventListener('click', openModal);
+  const openLoginModal = (e) => {
+    if (e) e.preventDefault();
+    if (registerModal) registerModal.classList.remove('active');
+    if (loginModal) loginModal.classList.add('active');
+  };
 
-  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+  const closeLoginModal = () => {
+    if (loginModal) loginModal.classList.remove('active');
+  };
+
+  if (btnNavRegister) btnNavRegister.addEventListener('click', openRegisterModal);
+  if (btnHeroRegister) btnHeroRegister.addEventListener('click', openRegisterModal);
+  if (btnSolutionStart) btnSolutionStart.addEventListener('click', openRegisterModal);
+  if (btnCtaRegister) btnCtaRegister.addEventListener('click', openRegisterModal);
+  const btnCtaDaftar = document.getElementById('btnCtaDaftar');
+  if (btnCtaDaftar) btnCtaDaftar.addEventListener('click', openRegisterModal);
+  if (switchRegisterLink) switchRegisterLink.addEventListener('click', openRegisterModal);
+
+  const btnKelolaDaftar = document.getElementById('btnKelolaDaftar');
+  const btnKelolaMore = document.getElementById('btnKelolaMore');
+  if (btnKelolaDaftar) btnKelolaDaftar.addEventListener('click', openRegisterModal);
+  if (btnKelolaMore) {
+    btnKelolaMore.addEventListener('click', () => {
+      const petaSection = document.getElementById('peta-kuliner');
+      if (petaSection) {
+        petaSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  if (btnNavLogin) btnNavLogin.addEventListener('click', openLoginModal);
+
+  const navLinkUmkm = document.getElementById('navLinkUmkm');
+  if (navLinkUmkm) navLinkUmkm.addEventListener('click', openRegisterModal);
+
+  // Mobile / Tablet Drawer Buttons
+  const btnNavLoginMenu = document.getElementById('btnNavLoginMenu');
+  const btnNavRegisterMenu = document.getElementById('btnNavRegisterMenu');
+  if (btnNavLoginMenu) {
+    btnNavLoginMenu.addEventListener('click', (e) => {
+      openLoginModal(e);
+      if (navMenu) navMenu.classList.remove('mobile-open');
+      if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+    });
+  }
+  if (btnNavRegisterMenu) {
+    btnNavRegisterMenu.addEventListener('click', (e) => {
+      openRegisterModal(e);
+      if (navMenu) navMenu.classList.remove('mobile-open');
+      if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+    });
+  }
+
+  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeRegisterModal);
+  if (loginModalCloseBtn) loginModalCloseBtn.addEventListener('click', closeLoginModal);
 
   if (registerModal) {
     registerModal.addEventListener('click', (e) => {
       if (e.target === registerModal) {
-        closeModal();
+        closeRegisterModal();
+      }
+    });
+  }
+
+  if (loginModal) {
+    loginModal.addEventListener('click', (e) => {
+      if (e.target === loginModal) {
+        closeLoginModal();
       }
     });
   }
 
   // Close with Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && registerModal && registerModal.classList.contains('active')) {
-      closeModal();
+    if (e.key === 'Escape') {
+      closeRegisterModal();
+      closeLoginModal();
     }
   });
 
   // 5. Form Submission & Toast Notification
   const partnerForm = document.getElementById('partnerRegisterForm');
+  const loginForm = document.getElementById('loginForm');
   const toast = document.getElementById('toastNotification');
 
   const showToast = (message) => {
@@ -132,11 +210,134 @@ document.addEventListener('DOMContentLoaded', () => {
     partnerForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const vendorName = document.getElementById('vendorName')?.value || 'Mitra';
-      closeModal();
+      closeRegisterModal();
       partnerForm.reset();
       showToast(`Terima kasih! Pendaftaran usaha "${vendorName}" berhasil kami terima.`);
     });
   }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userEmail = document.getElementById('loginEmail')?.value || 'Pengguna';
+      closeLoginModal();
+      loginForm.reset();
+      showToast(`Selamat datang kembali! Anda berhasil masuk sebagai ${userEmail}.`);
+    });
+  }
+
+  // Newsletter Form Submission
+  const newsletterForm = document.getElementById('newsletterForm');
+  const newsletterEmail = document.getElementById('newsletterEmail');
+  if (newsletterForm && newsletterEmail) {
+    newsletterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = newsletterEmail.value.trim();
+      if (email) {
+        showToast(`Terima kasih! Kami akan mengirimkan update kuliner ke ${email}.`);
+        newsletterForm.reset();
+      }
+    });
+  }
+
+  // 5B. Navbar Search Button & Hero Search Form
+  const navSearchBtn = document.getElementById('navSearchBtn');
+  const heroSearchInput = document.getElementById('heroSearchInput');
+  const heroSearchForm = document.getElementById('heroSearchForm');
+
+  if (navSearchBtn && heroSearchInput) {
+    navSearchBtn.addEventListener('click', () => {
+      heroSearchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        heroSearchInput.focus();
+      }, 500);
+    });
+  }
+
+  if (heroSearchForm && heroSearchInput) {
+    heroSearchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = heroSearchInput.value.trim();
+      const category = document.getElementById('heroCategorySelect')?.value || 'Semua';
+      if (query) {
+        showToast(`Mencari "${query}" dalam kategori ${category}...`);
+      } else {
+        showToast(`Menampilkan semua kuliner rekomendasi...`);
+      }
+    });
+  }
+
+  // 5B. Interactive Category Tabs & Slider
+  const categoryTabBtns = document.querySelectorAll('.category-tab-btn');
+  const foodCards = document.querySelectorAll('.popular-food-card');
+  const categoryTrack = document.getElementById('categoryCardsTrack');
+  const categoryNextBtn = document.getElementById('popularFoodNextBtn');
+  const categoryPrevBtn = document.getElementById('popularFoodPrevBtn');
+
+  // Category Tab Filtering
+  if (categoryTabBtns.length && foodCards.length) {
+    categoryTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryTabBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        const selectedCat = btn.getAttribute('data-category');
+
+        foodCards.forEach(card => {
+          const cardCat = card.getAttribute('data-category');
+          if (selectedCat === 'semua' || cardCat === selectedCat) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        if (categoryTrack) {
+          categoryTrack.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      });
+    });
+  }
+
+  // Category Slider Scroll Controls
+  if (categoryTrack && categoryNextBtn && categoryPrevBtn) {
+    categoryNextBtn.addEventListener('click', () => {
+      categoryTrack.scrollBy({ left: 260, behavior: 'smooth' });
+    });
+
+    categoryPrevBtn.addEventListener('click', () => {
+      categoryTrack.scrollBy({ left: -260, behavior: 'smooth' });
+    });
+
+    categoryTrack.addEventListener('scroll', () => {
+      const scrollLeft = categoryTrack.scrollLeft;
+      const maxScroll = categoryTrack.scrollWidth - categoryTrack.clientWidth;
+
+      if (scrollLeft > 20) {
+        categoryPrevBtn.style.display = 'flex';
+      } else {
+        categoryPrevBtn.style.display = 'none';
+      }
+
+      if (scrollLeft >= maxScroll - 20) {
+        categoryNextBtn.style.display = 'none';
+      } else {
+        categoryNextBtn.style.display = 'flex';
+      }
+    });
+  }
+
+  // Food Card Quick Click Toast / Interaction
+  foodCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const title = card.querySelector('.food-card-title')?.textContent || 'Kuliner';
+      showToast(`Membuka menu "${title}"...`);
+    });
+  });
 
   // 6. Interactive Demo Buttons
   const btnSolutionSample = document.getElementById('btnSolutionSample');
